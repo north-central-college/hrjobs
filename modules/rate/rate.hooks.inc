@@ -1,4 +1,10 @@
 <?php
+// $Id: rate.hooks.inc,v 1.2.2.3 2011/01/21 16:19:51 mauritsl Exp $
+
+/**
+ * @file
+ * Defines module hooks.
+ */
 
 /**
  * Define templates for rate widgets.
@@ -8,63 +14,78 @@
 function hook_rate_templates() {
   $templates = array();
 
+  $templates['thumbs_up'] = new stdClass();
+  $templates['thumbs_up']->value_type = 'points';
+  $templates['thumbs_up']->options = array(
+    array(1, 'up'),
+  );
+
   $templates['thumbs_up_down'] = new stdClass();
   $templates['thumbs_up_down']->value_type = 'points';
   $templates['thumbs_up_down']->options = array(
     array(1, 'up'),
     array(-1, 'down'),
   );
-  $templates['thumbs_up_down']->theme = 'rate_template_thumbs_up_down';
-  $templates['thumbs_up_down']->css = drupal_get_path('module', 'rate') . '/templates/thumbs-up-down/thumbs-up-down.css';
-  $templates['thumbs_up_down']->customizable = FALSE;
-  $templates['thumbs_up_down']->translate = TRUE;
-  $templates['thumbs_up_down']->template_title = t('Thumbs up / down');
 
   $templates['fivestar'] = new stdClass();
   $templates['fivestar']->value_type = 'percent';
   $templates['fivestar']->options = array(
-    array(0, '1'),
-    array(25, '2'),
-    array(50, '3'),
-    array(75, '4'),
-    array(100, '5'),
+    array(0, '*'),
+    array(25, '**'),
+    array(50, '***'),
+    array(75, '****'),
+    array(100, '*****'),
   );
-  $templates['fivestar']->theme = 'rate_template_fivestar';
-  $templates['fivestar']->css = drupal_get_path('module', 'rate') . '/templates/fivestar/fivestar.css';
-  $templates['fivestar']->js = drupal_get_path('module', 'rate') . '/templates/fivestar/fivestar.js';
-  $templates['fivestar']->customizable = FALSE;
-  $templates['fivestar']->translate = FALSE;
-  $templates['fivestar']->template_title = t('Fivestar');
 
   return $templates;
 }
 
 /**
- * Hook on actions done on rate widgets.
+ * Alter the rate widget before display.
  *
- * @param string $op
- * @param object $widget
- * @param array $values Form values from rate_widget_form (on insert and update)
- *   or an arra with the keys "content_type", "content_id"
- *   and "teaser" (on load).
+ * @param object $widget Widget object
+ * @param array $context
+ *   array(
+ *     'content_type' => $content_type,
+ *     'content_id' => $content_id,
+ *   );
  */
-function hook_rate_widget($op, &$widget, $values = NULL) {
-  switch ($op) {
-    case 'insert':
-    case 'update':
-      // Elements which are added to the $widget are saved automatically.
-      break;
-    case 'delete':
-      break;
-    case 'view':
-      // The $widget object may be altered here before display.
-      break;
-  }
+function hook_rate_widget_alter(&$widget, $context) {
+  
+}
+
+/**
+ * Take actions before saving rate widget to the database.
+ *
+ * @param object $widget Widget object
+ * @param array $values Values from $form_state['values']
+ */
+function hook_rate_widget_insert(&$widget, $values) {
+
+}
+
+/**
+ * Take actions before updating rate widget.
+ *
+ * @param object $widget Widget object
+ * @param array $values Values from $form_state['values']
+ */
+function hook_rate_widget_update(&$widget, $values) {
+  
+}
+
+/**
+ * Take action after deleting rate widget.
+ *
+ * @param object $widget Widget object
+ */
+function hook_rate_widget_delete(&$widget) {
+  
 }
 
 /**
  * Alter the vote before it is saved.
- *
+ * 
  * @param array $vote
  *   array(
  *     'entity_type' => $content_type,

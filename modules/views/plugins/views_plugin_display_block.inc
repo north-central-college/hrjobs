@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_display_block.inc,v 1.5 2009/06/26 00:23:42 merlinofchaos Exp $
 /**
  * @file
  * Contains the block display plugin.
@@ -15,7 +14,7 @@ class views_plugin_display_block extends views_plugin_display {
     $options = parent::option_definition();
 
     $options['block_description'] = array('default' => '', 'translatable' => TRUE);
-    $options['block_caching'] = array('default' => BLOCK_NO_CACHE);
+    $options['block_caching'] = array('default' => DRUPAL_NO_CACHE);
 
     return $options;
   }
@@ -25,21 +24,19 @@ class views_plugin_display_block extends views_plugin_display {
    * but extended block handlers might be able to do interesting
    * stuff with it.
    */
-  function execute_hook_block($op = 'list', $delta = 0, $edit = array()) {
-    if ($op == 'list') {
-      $delta = $this->view->name . '-' . $this->display->id;
-      $desc = $this->get_option('block_description');
+  function execute_hook_block_list($delta = 0, $edit = array()) {
+    $delta = $this->view->name . '-' . $this->display->id;
+    $desc = $this->get_option('block_description');
 
-      if (empty($desc)) {
-        $desc = t('@view: @display', array('@view' => $this->view->name, '@display' => $this->display->display_title));
-      }
-      return array(
-        $delta => array(
-          'info' => $desc,
-          'cache' => $this->get_cache_type()
-        )
-      );
+    if (empty($desc)) {
+      $desc = t('@view: @display', array('@view' => $this->view->name, '@display' => $this->display->display_title));
     }
+    return array(
+      $delta => array(
+        'info' => $desc,
+        'cache' => $this->get_cache_type()
+      ),
+    );
   }
 
   /**
@@ -66,6 +63,10 @@ class views_plugin_display_block extends views_plugin_display {
 
     $categories['block'] = array(
       'title' => t('Block settings'),
+      'column' => 'second',
+      'build' => array(
+        '#weight' => -10,
+      ),
     );
 
     $block_description = strip_tags($this->get_option('block_description'));
@@ -74,24 +75,24 @@ class views_plugin_display_block extends views_plugin_display {
     }
 
     if (strlen($block_description) > 16) {
-      $block_description = substr($block_description, 0, 16) . '...';
+      $block_description = drupal_substr($block_description, 0, 16) . '...';
     }
 
     $options['block_description'] = array(
       'category' => 'block',
-      'title' => t('Admin'),
+      'title' => t('Block name'),
       'value' => $block_description,
     );
 
     $cache_type = $this->get_option('block_caching');
     if (empty($cache_type)) {
-      $cache_type = BLOCK_NO_CACHE;
+      $cache_type = DRUPAL_NO_CACHE;
     }
 
     $types = $this->block_caching_modes();
     $options['block_caching'] = array(
-      'category' => 'block',
-      'title' => t('Caching'),
+      'category' => 'other',
+      'title' => t('Block caching'),
       'value' => $types[$this->get_cache_type()],
     );
   }
@@ -101,13 +102,13 @@ class views_plugin_display_block extends views_plugin_display {
    */
   function block_caching_modes() {
     return array(
-      BLOCK_NO_CACHE => t('Do not cache'),
-      BLOCK_CACHE_GLOBAL => t('Cache once for everything (global)'),
-      BLOCK_CACHE_PER_PAGE => t('Per page'),
-      BLOCK_CACHE_PER_ROLE => t('Per role'),
-      BLOCK_CACHE_PER_ROLE | BLOCK_CACHE_PER_PAGE => t('Per role per page'),
-      BLOCK_CACHE_PER_USER => t('Per user'),
-      BLOCK_CACHE_PER_USER | BLOCK_CACHE_PER_PAGE => t('Per user per page'),
+      DRUPAL_NO_CACHE => t('Do not cache'),
+      DRUPAL_CACHE_GLOBAL => t('Cache once for everything (global)'),
+      DRUPAL_CACHE_PER_PAGE => t('Per page'),
+      DRUPAL_CACHE_PER_ROLE => t('Per role'),
+      DRUPAL_CACHE_PER_ROLE | DRUPAL_CACHE_PER_PAGE => t('Per role per page'),
+      DRUPAL_CACHE_PER_USER => t('Per user'),
+      DRUPAL_CACHE_PER_USER | DRUPAL_CACHE_PER_PAGE => t('Per user per page'),
     );
   }
 
@@ -118,7 +119,7 @@ class views_plugin_display_block extends views_plugin_display {
   function get_cache_type() {
     $cache_type = $this->get_option('block_caching');
     if (empty($cache_type)) {
-      $cache_type = BLOCK_NO_CACHE;
+      $cache_type = DRUPAL_NO_CACHE;
     }
     return $cache_type;
   }
@@ -135,7 +136,7 @@ class views_plugin_display_block extends views_plugin_display {
         $form['#title'] .= t('Block admin description');
         $form['block_description'] = array(
           '#type' => 'textfield',
-          '#description' => t('This will appear as the name of this block in administer >> site building >> blocks.'),
+          '#description' => t('This will appear as the name of this block in administer >> structure >> blocks.'),
           '#default_value' => $this->get_option('block_description'),
         );
         break;
@@ -160,12 +161,15 @@ class views_plugin_display_block extends views_plugin_display {
     // It is very important to call the parent function here:
     parent::options_submit($form, $form_state);
     switch ($form_state['section']) {
+      case 'display_id':
+        $this->update_block_bid($form_state['view']->name, $this->display->id, $this->display->new_id);
+        break;
       case 'block_description':
         $this->set_option('block_description', $form_state['values']['block_description']);
         break;
       case 'block_caching':
         $this->set_option('block_caching', $form_state['values']['block_caching']);
-        $this->save_block_cache($form_state['view']->name.'-'.$form_state['display_id'], $form_state['values']['block_caching']);
+        $this->save_block_cache($form_state['view']->name . '-'. $form_state['display_id'], $form_state['values']['block_caching']);
         break;
     }
   }
@@ -180,14 +184,38 @@ class views_plugin_display_block extends views_plugin_display {
 
     return FALSE;
   }
-  
+
   /**
-   * Save the block cache setting in the blocks table if this block allready 
+   * Update the block delta when you change the machine readable name of the display.
+   */
+  function update_block_bid($name, $old_delta, $delta) {
+    $old_delta = $name . '-' . $old_delta;
+    $delta = $name . '-' . $delta;
+    if (strlen($old_delta) >= 32) {
+      $old_delta = md5($old_delta);
+    }
+    if (strlen($delta) >= 32) {
+      $delta = md5($delta);
+    }
+    db_update('block')
+      ->fields(array('delta' => $delta))
+      ->condition('delta', $old_delta)
+      ->execute();
+  }
+  /**
+   * Save the block cache setting in the blocks table if this block allready
    * exists in the blocks table. Dirty fix untill http://drupal.org/node/235673 gets in.
    */
   function save_block_cache($delta, $cache_setting) {
-    if ($bid = db_fetch_object(db_query("SELECT bid, cache FROM {blocks} WHERE module = 'views' AND delta = '%s'", $delta))) {
-      db_query("UPDATE {blocks} set cache = %d WHERE module = 'views' AND delta = '%s'", $cache_setting, $delta);
+    if ($bid = db_query("SELECT bid FROM {block} WHERE module = 'views' AND delta = :delta", array(
+        ':delta' => $delta))->fetchField()) {
+      db_update('block')
+        ->fields(array(
+        'cache' => $cache_setting,
+        ))
+        ->condition('module','views')
+        ->condition('delta', $delta)
+        ->execute();
     }
   }
 }

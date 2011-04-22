@@ -1,3 +1,4 @@
+$Id: README.txt,v 1.10.2.2 2011/01/13 17:40:51 mauritsl Exp $
 
 PREFACE
 -------
@@ -16,7 +17,6 @@ CONTENTS
 6. Views integration
 7. Expiration (close voting on a specified date)
 8. Using rate in blocks or panels
-9. Hooks
 
 1. Installation
 --------------------------------------------------------------------------------
@@ -29,9 +29,6 @@ Copy Rate into your modules directory (i.e. sites/all/modules) and enable Rate
 
 Optional modules:
 
-* Chart
-  To view the charts in the vote results tab, you also need to install the "chart"
-  module, which you can get at http://drupal.org/project/chart.
 * Date
   The date module is a requirement for the Rate Expiration module.
 
@@ -89,32 +86,10 @@ use, these are "Value type", "Options" and "Translate options".
   * Above the content: The content will be prepended by the widget.
   * Below the content: Selected by default. The widget is appended to the
     content.
-  * Within the links: Add the widget inside the links section.
 * Display in teaser
   Check this box if you want the widget to be visible in the node teaser.
-* Appearance in full node
-  Display mode when full node is displayed. Options are:
-  * Full widget: Display the full, clickable widget.
-  * Display only: Display the full widget in disabled state (links are not
-    clickable).
-  * Display only, compact: Compact widget in disabled state.
-  * Compact: Clickable widget, but without information line.
-* Appearance in teaser
-  Display mode when node teaser is displayed.
 * Comment display
   Same as node display, but for comments.
-* Display mode when displayed for comments.
-* Which rating should be displayed?
-  Determines which rating to display. Options are:
-  * Average rating: Always display the average rating.
-  * Users vote if available, empty otherwise: Display the users vote. If the
-    user has not voted already, there is no voting result displayed.
-  * Users vote if available, average otherwise: Display the users vote. If the
-    user has not voted already, the average vote is displayed.
-* Which rating should be displayed when the user just voted?
-  Same as previous question. Applies directly after the user has voted. It is
-  recommended to set this to "Users vote" to provide a visible feedback after
-  a user has voted.
 * Roles
   Check the roles which are allowed to vote using this widget. All roles are
   allowed to vote if no roles are checked.
@@ -195,13 +170,29 @@ You may use the following snippets in the template:
 
 * Print a button for a single option:
 
-    <?php print $links[0]['content']; ?>
+    <?php
+    print theme('rate_button', array(
+      'text' => $links[0]['text'],
+      'href' => $links[0]['href'],
+      'class' => "extra-class")
+    );
+    ?>
 
   '0' is the first option (see §2.1). For a thumbs up / down
   configuration you will have:
 
-    <?php print $links[0]['content']; ?>
-    <?php print $links[1]['content']; ?>
+    <?php
+    print theme('rate_button', array(
+      'text' => $links[0]['text'],
+      'href' => $links[0]['href'],
+      'class' => "extra-class")
+    );
+    print theme('rate_button', array(
+      'text' => $links[1]['text'],
+      'href' => $links[1]['href'],
+      'class' => "extra-class")
+    );
+    ?>
 
 * Print the rating when using value type 'percentage' or 'points':
 
@@ -227,7 +218,7 @@ You may use the following snippets in the template:
 You can choose to not automatically add the widget to the node template. In that
 case, the widget can be used as:
 
-<?php print $node->rate_NAME['#value']; ?>
+<?php print $node->rate_NAME['#markup']; ?>
 
 Replace NAME by the widget's machine readable name.
 
@@ -238,19 +229,15 @@ clicking the "Voting results" tab on the node page. Note that this tab is hidden
 if the node does not have any rate widgets or if you do not have the
 "view rate results" permission.
 
-When the chart module is enabled, you will find charts of the results in the
-last 30 days on this page. The chart may show less than 30 days if there was no
-activity on all days.
-
 The voting results page is only available for nodes.
 
 6. Views integration
 --------------------------------------------------------------------------------
 This module provides views integration via the VotingAPI module. To add a rate
-widget in your view, first add a relation to "Node: Vote results" for nodes or
-"Comment: Vote results" for comments. You have to configure a few options here.
-The "Value type" and "Vote tag" needs to be the same as used for the widget
-(see §2.1). The "aggregate" function must be "Number of votes".
+widget in your view, first add a relation to "Node: Vote results". You have to
+configure a few options here. The "Value type" and "Vote tag" needs to be the
+same as used for the widget (see §2.1). The "aggregate" function must be
+"Number of votes".
 
 After adding the relationship, you can add the field "Vote results: Value" to
 your view. In the "Appearance" box you may choose one of the following:
@@ -264,9 +251,11 @@ your view. In the "Appearance" box you may choose one of the following:
 * Rate widget
   This shows the full widget (as on the node page).
 
-When using a view on nodes, you are advised to add the "Node: Type" field to
-your view fields. If you do not, an additional query will be executed per row.
-You may exclude this field from display.
+You are advised to add the "Node: Type" field to your view fields. If you do
+not, an additional query will be executed per row. You may exclude this field
+from display.
+
+Views integration for comments is not supported at the moment.
 
 7. Expiration (close voting on a specified date)
 --------------------------------------------------------------------------------
@@ -287,23 +276,18 @@ a custom block with the PHP code input filter or a panel with PHP code and use
 the following code:
 
 <?php
-if (arg(0) == 'node' && is_numeric(arg(1)) && $node = node_load(arg(1))) {
-  node_invoke_nodeapi($node, 'view');
-  print $node->rate_NAME['#value'];
+if (arg(0) == 'node' && is_numeric(arg(1)) && ($node = node_load(arg(1)))) {
+  print rate_embed($node, 'NAME');
 }
 ?>
 
-Replace NAME by the widget's machine readable name.
+Replace NAME by the widget's machine readable name. If you already have a loaded
+node object, you just need the "print rate_embed" line.
 
-The display setting for nodes must be set to "Do not add automatically".
+You may also use different build modes:
 
-9. Hooks
---------------------------------------------------------------------------------
-There are two Javascript hooks available; eventBeforeRate and eventAfterRate.
-This hook has an argument 'data'. This is an object which contains the variables
-'content_type', 'content_id', 'widget_id' and 'widget_mode'. Example of use:
+print rate_embed($node, 'NAME', RATE_FULL);
+print rate_embed($node, 'NAME', RATE_COMPACT);
+print rate_embed($node, 'NAME', RATE_DISABLED);
+print rate_embed($node, 'NAME', RATE_CLOSED);
 
-$(document).bind('eventAfterRate', function(event, data)
-{
-  alert('eventAfterRate called');
-});

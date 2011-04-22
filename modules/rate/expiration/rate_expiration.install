@@ -1,18 +1,10 @@
 <?php
+// $Id: rate_expiration.install,v 1.2.2.1 2011/01/12 23:05:21 mauritsl Exp $
 
 /**
- * Implements hook_install().
+ * @file
+ * Installation/Uninstallation functions for rate expiration module.
  */
-function rate_expiration_install() {
-  drupal_install_schema('rate_expiration');
-}
-
-/**
- * Implements hook_uninstall().
- */
-function rate_expiration_uninstall() {
-  drupal_uninstall_schema('rate_expiration');
-}
 
 /**
  * Implements hook_schema().
@@ -43,7 +35,7 @@ function rate_expiration_schema() {
         'not null' => TRUE,
       ),
     ),
-    'primary key' => array('nid'),
+    'primary key' => array('nid', 'widget_name'),
   );
 
   return $schema;

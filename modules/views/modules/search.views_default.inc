@@ -1,24 +1,23 @@
 <?php
-// $Id: search.views_default.inc,v 1.6.4.1 2010/03/10 20:02:26 merlinofchaos Exp $
 /**
  * @file
  * Contains default views on behalf of the search module.
  */
 
 /**
- * Implementation of hook_views_default_views().
+ * Implements hook_views_default_views().
  */
 function search_views_default_views() {
   $view = new view;
   $view->name = 'backlinks';
   $view->description = 'Displays a list of nodes that link to the node, using the search backlinks table.';
   $view->tag = 'default';
-  $view->view_php = '';
   $view->base_table = 'node';
-  $view->is_cacheable = '0';
+  $view->human_name = 'Backlinks';
   $view->api_version = 2;
+  $view->version = 7;
   $view->disabled = TRUE; /* Edit this to true to make a default view disabled initially */
-  $handler = $view->new_display('default', 'Defaults', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->override_option('fields', array(
     'title' => array(
       'id' => 'title',

@@ -1,13 +1,11 @@
 <?php
-// $Id: book.views_convert.inc,v 1.3 2009/06/30 19:14:27 merlinofchaos Exp $
-
 /**
  * @file
  * Field conversion for fields handled by this module.
  */
 
 /**
- * Implementation of hook_views_convert().
+ * Implements hook_views_convert().
  */
 function book_views_convert($display, $type, &$view, $field, $id = NULL) {
   switch ($type) {

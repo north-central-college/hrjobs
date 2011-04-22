@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_relationship.inc,v 1.4.2.1 2009/11/02 23:25:14 merlinofchaos Exp $
 /**
  * @file
  * Views' relationship handlers.
@@ -38,7 +37,7 @@ class views_handler_relationship extends views_handler {
    * Init handler to let relationships live on tables other than
    * the table they operate on.
    */
-  function init(&$view, $options) {
+  function init(&$view, &$options) {
     parent::init($view, $options);
     if (isset($this->definition['relationship table'])) {
       $this->table = $this->definition['relationship table'];
@@ -73,17 +72,18 @@ class views_handler_relationship extends views_handler {
    * should have.
    */
   function options_form(&$form, &$form_state) {
+    parent::options_form($form, $form_state);
     $form['label'] = array(
       '#type' => 'textfield',
-      '#title' => t('Label'),
+      '#title' => t('Identifier'),
       '#default_value' => isset($this->options['label']) ? $this->options['label'] : '',
-      '#description' => t('The label for this relationship that will be displayed only administratively.'),
+      '#description' => t('Edit the administrative label displayed when referencing this relationship form filters, etc.'),
     );
 
     $form['required'] = array(
       '#type' => 'checkbox',
       '#title' => t('Require this relationship'),
-      '#description' => t('If required, items that do not contain this relationship will not appear.'),
+      '#description' => t('Enable to hide items that do not contain this relationship'),
       '#default_value' => !empty($this->options['required']),
     );
   }
@@ -137,8 +137,7 @@ class views_handler_relationship_broken extends views_handler_relationship {
   function query() { /* No query to run */ }
   function options_form(&$form, &$form_state) {
     $form['markup'] = array(
-      '#prefix' => '<div class="form-item description">',
-      '#value' => t('The handler for this item is broken or missing and cannot be used. If a module provided the handler and was disabled, re-enabling the module may restore it. Otherwise, you should probably delete this item.'),
+      '#markup' => '<div class="form-item description">' . t('The handler for this item is broken or missing and cannot be used. If a module provided the handler and was disabled, re-enabling the module may restore it. Otherwise, you should probably delete this item.') . '</div>',
     );
   }
 

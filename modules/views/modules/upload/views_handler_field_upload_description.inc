@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_upload_description.inc,v 1.5.2.1 2010/04/07 23:40:35 merlinofchaos Exp $
 
 /**
  * Field handler to provide a list of roles.
@@ -27,7 +26,7 @@ class views_handler_field_upload_description extends views_handler_field {
     );
   }
 
-  function pre_render($values) {
+  function pre_render(&$values) {
     if (empty($this->options['link_to_file'])) {
       return;
     }
@@ -43,15 +42,16 @@ class views_handler_field_upload_description extends views_handler_field {
     }
 
     if ($fids) {
-      $result = db_query("SELECT f.fid, f.filepath FROM {files} f WHERE f.fid IN (" . implode(', ', $fids) . ")");
-      while ($file = db_fetch_object($result)) {
+      $result = db_query("SELECT f.fid, f.uri FROM {files} f WHERE f.fid IN (:fids)", array(':fids' => $fids));
+      foreach ($result as $file) {
         $this->items[$file->fid] = $file;
       }
     }
   }
 
   function render($values) {
-    return $this->render_link(check_plain($values->{$this->field_alias}), $values);
+    $value = $this->get_value($values);
+    return $this->render_link($this->sanitize_value($value), $values);
   }
 
   /**
@@ -59,11 +59,12 @@ class views_handler_field_upload_description extends views_handler_field {
    *
    * Data should be made XSS safe prior to calling this function.
    */
-  function render_link($data, $value) {
-    if (!empty($this->options['link_to_file']) && $value->{$this->aliases['fid']} && $data !== NULL && $data !== '') {
-      $values = $this->items[$value->{$this->aliases['fid']}];
+  function render_link($data, $values) {
+    $fid = $this->get_value($values, 'fid');
+    if (!empty($this->options['link_to_file']) && $fid && $data !== NULL && $data !== '') {
+      $values = $this->items[$fid];
       $this->options['alter']['make_link'] = TRUE;
-      $this->options['alter']['path'] = file_create_url($values->filepath);
+      $this->options['alter']['path'] = file_create_url($values->uri);
     }
     else {
       $this->options['alter']['make_link'] = FALSE;

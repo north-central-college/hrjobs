@@ -1,5 +1,5 @@
 <?php
-// $Id: votingapi.views.inc,v 1.1.2.18 2009/08/15 17:51:38 eaton Exp $
+// $Id: votingapi.views.inc,v 1.1.2.17.2.3 2010/10/10 00:47:46 eaton Exp $
 
 /**
  * @file
@@ -25,6 +25,10 @@ function votingapi_views_handlers() {
       ),
       'votingapi_views_handler_relationship' => array(
         'parent' => 'views_handler_relationship',
+        'path' => drupal_get_path('module', 'votingapi') . '/views',
+      ),
+      'votingapi_views_handler_sort_nullable' => array(
+        'parent' => 'views_handler_sort',
         'path' => drupal_get_path('module', 'votingapi') . '/views',
       ),
     ),
@@ -60,7 +64,7 @@ function votingapi_views_data() {
       'allow empty' => TRUE,
     ),
     'sort' => array(
-      'handler' => 'views_handler_sort',
+      'handler' => 'votingapi_views_handler_sort_nullable',
     ),
   );
 
@@ -186,7 +190,7 @@ function votingapi_views_data() {
       'allow empty' => TRUE,
     ),
     'sort' => array(
-      'handler' => 'views_handler_sort',
+      'handler' => 'votingapi_views_handler_sort_nullable',
     ),
   );
 
@@ -274,31 +278,23 @@ function votingapi_views_data_alter(&$views_data) {
 
   $default_relationships[] = array(
     'description' => t('nodes'),
-    'content_type' => 'node',
+    'entity_type' => 'node',
     'base_table' => 'node',
-    'content_id_column' => 'nid',
+    'entity_id_column' => 'nid',
     'pseudo_vote' => 'votingapi_vote',    // for legacy compatability w/RC1.
     'pseudo_cache' => 'votingapi_cache',  // for legacy compatability w/RC1.
   );
   $default_relationships[] = array(
     'description' => t('comments'),
-    'content_type' => 'comment',
+    'entity_type' => 'comment',
     'base_table' => 'comments',
-    'content_id_column' => 'cid',
-    'pseudo_vote' => 'votingapi_vote',    // for legacy compatability w/RC1.
-    'pseudo_cache' => 'votingapi_cache',  // for legacy compatability w/RC1.
-  );
-  $default_relationships[] = array(
-    'description' => t('users'),
-    'content_type' => 'user',
-    'base_table' => 'users',
-    'content_id_column' => 'uid',
+    'entity_id_column' => 'cid',
     'pseudo_vote' => 'votingapi_vote',    // for legacy compatability w/RC1.
     'pseudo_cache' => 'votingapi_cache',  // for legacy compatability w/RC1.
   );
 
   foreach ($default_relationships as $data) {
-    $pseudo = str_replace(array(' ','-','.'), '_', $data['content_type'] . '_' . $data['content_id_column']);
+    $pseudo = str_replace(array(' ','-','.'), '_', $data['entity_type'] . '_' . $data['entity_id_column']);
     $pseudo_vote = empty($data['pseudo_vote']) ? 'vapi_'. $pseudo : $data['pseudo_vote'];
     $pseudo_cache = empty($data['pseudo_cache']) ? 'vapic_'. $pseudo : $data['pseudo_cache'];
     
@@ -306,13 +302,13 @@ function votingapi_views_data_alter(&$views_data) {
       'title' => 'Votes',
       'help' => 'Votes cast by users on ' . $data['description'] . '.',
       'base' => 'votingapi_vote',
-      'field' => 'content_id',
-      'relationship field' => $data['content_id_column'],
+      'field' => 'entity_id',
+      'relationship field' => $data['entity_id_column'],
       'handler' => 'votingapi_views_handler_relationship',
       'extra' => array(
         array(
-          'field' => 'content_type',
-          'value' => $data['content_type'],
+          'field' => 'entity_type',
+          'value' => $data['entity_type'],
           'numeric' => FALSE
         ),
       ),
@@ -322,13 +318,13 @@ function votingapi_views_data_alter(&$views_data) {
       'title' => 'Vote results',
       'help' => 'Aggregate results of votes cast on ' . $data['description'] . '.',
       'base' => 'votingapi_cache',
-      'field' => 'content_id',
-      'relationship field' => $data['content_id_column'],
+      'field' => 'entity_id',
+      'relationship field' => $data['entity_id_column'],
       'handler' => 'votingapi_views_handler_relationship',
       'extra' => array(
         array(
-          'field' => 'content_type',
-          'value' => $data['content_type'],
+          'field' => 'entity_type',
+          'value' => $data['entity_type'],
           'numeric' => FALSE
         ),
       ),
@@ -337,7 +333,7 @@ function votingapi_views_data_alter(&$views_data) {
 }
 
 
-function _votingapi_views_sql_safe_content_type($string) {
+function _votingapi_views_sql_safe_entity_type($string) {
   return str_replace(array(' ','-','.'), '_', $string);
 }
 

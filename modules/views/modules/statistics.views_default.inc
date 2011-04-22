@@ -1,24 +1,23 @@
 <?php
-// $Id: statistics.views_default.inc,v 1.5.4.1 2010/03/10 20:02:26 merlinofchaos Exp $
 /**
  * @file
  * Contains default views on behalf of the statistics module.
  */
 
 /**
- * Implementation of hook_views_default_views().
+ * Implements hook_views_default_views().
  */
 function statistics_views_default_views() {
   $view = new view;
   $view->name = 'popular';
   $view->description = 'Shows the most-viewed nodes on the site. This requires the statistics to be enabled at administer >> reports >> access log settings.';
   $view->tag = 'default';
-  $view->view_php = '';
   $view->base_table = 'node';
-  $view->is_cacheable = '0';
+  $view->human_name = 'Popular content';
   $view->api_version = 2;
+  $view->version = 7;
   $view->disabled = TRUE; /* Edit this to true to make a default view disabled initially */
-  $handler = $view->new_display('default', 'Defaults', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->override_option('fields', array(
     'type' => array(
       'id' => 'type',
@@ -42,7 +41,7 @@ function statistics_views_default_views() {
     ),
     'timestamp' => array(
       'id' => 'timestamp',
-      'table' => 'history_user',
+      'table' => 'history',
       'field' => 'timestamp',
       'label' => '',
       'comments' => 1,
@@ -172,7 +171,7 @@ function statistics_views_default_views() {
     ),
     'timestamp' => array(
       'id' => 'timestamp',
-      'table' => 'history_user',
+      'table' => 'history',
       'field' => 'timestamp',
       'label' => '',
       'comments' => 1,

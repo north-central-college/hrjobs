@@ -1,5 +1,4 @@
 <?php
-//$Id: node.views_convert.inc,v 1.7 2009/06/30 19:14:27 merlinofchaos Exp $
 
 /**
  * @file
@@ -7,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_views_convert().
+ * Implements hook_views_convert().
  *
  * Intervene to convert field values from the Views 1 format to the
  * Views 2 format. Intervene only if $view->add_item() won't produce
@@ -62,7 +61,7 @@ function node_views_convert($display, $type, &$view, $field, $id = NULL) {
         case 'node':
           switch ($field['field']) {
             case 'type':
-              $operators = array('OR' => 'in', 'NOR' => 'not in');
+              $operators = array('OR' => 'IN', 'NOR' => 'NOT IN');
               $view->set_item_option($display, 'filter', $id, 'operator', $operators[$field['operator']]);
               break;
             case 'anon':
@@ -119,7 +118,7 @@ function node_views_convert($display, $type, &$view, $field, $id = NULL) {
         case 'history':
           switch ($field['field']) {
             case 'timestamp':
-              $view->set_item_option($display, 'filter', $id, 'table', 'history_user');
+              $view->set_item_option($display, 'filter', $id, 'table', 'history');
               break;
           }
           break;
